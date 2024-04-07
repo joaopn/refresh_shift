@@ -175,7 +175,7 @@ async def scrape_submissions(ids_file, auth_file, outfile, batch_size=100):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Scrape Reddit submissions using asyncPRAW')
     parser.add_argument('--datasets', type=str, required=True, help='Datasets to scrape submissions for')
-    parser.add_argument('--auth', type=str, default='AUTH.json', help='File containing Reddit API authentication data')
+    parser.add_argument('--auth', type=str, default='auth/AUTH.json', help='File containing Reddit API authentication data')
     parser.add_argument('--datatype', type=str, choices=['submissions', 'comments'], default='submissions', help='Type of data to scrape')
     args = parser.parse_args()
 
