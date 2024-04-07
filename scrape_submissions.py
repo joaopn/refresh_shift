@@ -7,9 +7,9 @@ from datetime import datetime
 from tqdm.asyncio import tqdm
 import os
 
-def setup_logging(outfile):
+def setup_logging(base_folder, outfile):
     # Set up logging
-    log_file = f"log/{os.path.splitext(os.path.basename(outfile))[0]}_scrapelog.log"
+    log_file = os.path.join(base_folder, f"log/{os.path.splitext(os.path.basename(outfile))[0]}_scrapelog.log")
     if os.path.exists(log_file):
         os.rename(log_file, log_file + '.old')
 
@@ -17,7 +17,7 @@ def setup_logging(outfile):
                         format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 
     # Set up error logging
-    error_log_file = f"log/{os.path.splitext(os.path.basename(outfile))[0]}_errorlog.log"
+    error_log_file = os.path.join(base_folder, f"log/{os.path.splitext(os.path.basename(outfile))[0]}_errorlog.log")
     if os.path.exists(error_log_file):
         os.rename(error_log_file, error_log_file + '.old')
 
@@ -31,8 +31,8 @@ def setup_logging(outfile):
 
     return error_logger
 
-async def scrape_submissions(ids_file, auth_file, outfile, batch_size=100):
-    error_logger = setup_logging(outfile)
+async def scrape_submissions(base_folder, ids_file, auth_file, outfile, batch_size=100):
+    error_logger = setup_logging(base_folder, outfile)
 
     # Read auth data from AUTH.json file
     with open(auth_file) as f:
@@ -43,7 +43,7 @@ async def scrape_submissions(ids_file, auth_file, outfile, batch_size=100):
         submission_ids = [line.strip() for line in f]
 
     # Create the ids_processed folder if it doesn't exist
-    ids_processed_folder = os.path.join(os.path.dirname(ids_file), 'processed')
+    ids_processed_folder = os.path.join(base_folder, os.path.dirname(ids_file), 'processed')
     os.makedirs(ids_processed_folder, exist_ok=True)
 
     # Read processed IDs from file if it exists
@@ -177,15 +177,16 @@ if __name__ == '__main__':
     parser.add_argument('--datasets', type=str, required=True, help='Datasets to scrape submissions for')
     parser.add_argument('--auth', type=str, default='auth/AUTH.json', help='File containing Reddit API authentication data')
     parser.add_argument('--datatype', type=str, choices=['submissions', 'comments'], default='submissions', help='Type of data to scrape')
+    parser.add_argument('--basefolder', type=str, default='', help='Base folder for data writing')
     args = parser.parse_args()
 
     datasets = args.datasets.split(',')
 
     for dataset in datasets:
         if args.datatype == 'submissions':
-            ids_file = f'data/ids/submission_ids_{dataset}.csv'
-            outfile = f'data/submissions_{dataset}.ndjson'
-            asyncio.run(scrape_submissions(ids_file, args.auth, outfile))
+            ids_file = os.path.join(args.basefolder, f'data/ids/submission_ids_{dataset}.csv')
+            outfile = os.path.join(args.basefolder, f'data/submissions_{dataset}.ndjson')
+            asyncio.run(scrape_submissions(args.basefolder, ids_file, args.auth, outfile))
 
         elif args.datatype == 'comments':
             raise NotImplementedError("Comment scraping not implemented yet")
