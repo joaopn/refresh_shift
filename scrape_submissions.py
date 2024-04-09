@@ -84,8 +84,9 @@ async def scrape_submissions(base_folder, ids_file, auth_file, outfile, batch_si
 
                     # Add the 't3_' prefix to the remaining submission IDs
                     batch_ids = [f't3_{id}' for id in batch_ids]
+                    
+                    processed_batch_ids = []  
 
-                    processed_batch_ids = []
                     try:
                         # Fetch submissions in smaller batches using reddit.info()
                         for i in range(0, len(batch_ids), reddit_batch_size):
@@ -151,16 +152,17 @@ async def scrape_submissions(base_folder, ids_file, auth_file, outfile, batch_si
                                 # Add the successfully processed ID to the list
                                 processed_batch_ids.append(submission.id)
 
-                        # Flush data to disk after each batch
-                        f.flush()
+                            # Flush the output file after each Reddit batch
+                            f.flush()
 
-                        # Write processed IDs to file only if there were no errors
-                        with open(processed_ids_file, 'a') as processed_f:
-                            for id in processed_batch_ids:
-                                processed_f.write(f"{id}\n")
+                            # Write processed IDs to file for the current Reddit batch
+                            with open(processed_ids_file, 'a') as processed_f:
+                                for id in processed_batch_ids:
+                                    processed_f.write(f"{id}\n")
 
-                        # Update the progress bar with the batch size
-                        pbar.update(len(batch_ids))
+                            pbar.update(len(reddit_batch))
+                            processed_batch_ids = []  # Reset the processed batch IDs for the next Reddit batch
+
 
                     except Exception as e:
                         error_message = str(e)
