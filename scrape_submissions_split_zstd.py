@@ -184,7 +184,7 @@ if __name__ == '__main__':
 
         if args.split_range:
             start, end = map(int, args.split_range.split(','))
-            split_files = [os.path.join(split_folder, f'submission_ids_{dataset}_{i}.txt') for i in range(start, end+1)]
+            split_files = [os.path.join(split_folder, f'submission_ids_{dataset}_{i:03}.txt') for i in range(start, end+1)]
         else:
             split_files = [os.path.join(split_folder, f) for f in os.listdir(split_folder) if f.endswith('.txt')]
 
