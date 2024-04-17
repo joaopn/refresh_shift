@@ -188,6 +188,8 @@ if __name__ == '__main__':
         else:
             split_files = [os.path.join(split_folder, f) for f in os.listdir(split_folder) if f.endswith('.txt')]
 
+        split_files.sort()
+
         for split_file in split_files:
             asyncio.run(scrape_submissions(args.basefolder, dataset, split_file, args.auth))
 
