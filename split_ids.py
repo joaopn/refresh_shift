@@ -23,7 +23,7 @@ def split_ids(ids, original_filename, batch_size):
     os.makedirs(batch_dir, exist_ok=True)
     
     for i in range(0, len(ids), batch_size):
-        batch_filename = os.path.join(batch_dir, f"{base_name}_%i.txt" % ((i // batch_size) + 1))
+        batch_filename = os.path.join(batch_dir, f"{base_name}_{(i // batch_size) + 1:03}.txt")
         with open(batch_filename, mode='w', newline='') as file:
             writer = csv.writer(file)
             writer.writerows([[id_] for id_ in ids[i:i+batch_size]])
