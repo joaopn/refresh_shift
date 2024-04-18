@@ -20,8 +20,13 @@ def setup_logging(base_folder, dataset, split_file):
     if os.path.exists(log_file):
         os.rename(log_file, old_log_file)
 
-    logging.basicConfig(filename=log_file, level=logging.DEBUG,
-                        format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+    scrape_logger = logging.getLogger(f'scrape_logger_{split_file}')
+    scrape_logger.setLevel(logging.DEBUG)
+    scrape_handler = logging.FileHandler(log_file)
+    scrape_handler.setLevel(logging.DEBUG)
+    scrape_formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+    scrape_handler.setFormatter(scrape_formatter)
+    scrape_logger.addHandler(scrape_handler)
 
     error_log_file = os.path.join(log_folder, f"{os.path.splitext(os.path.basename(split_file))[0]}_errorlog.log")
     old_error_log_file = error_log_file + '.old'
@@ -30,7 +35,7 @@ def setup_logging(base_folder, dataset, split_file):
     if os.path.exists(error_log_file):
         os.rename(error_log_file, old_error_log_file)
 
-    error_logger = logging.getLogger('error_logger')
+    error_logger = logging.getLogger(f'error_logger_{split_file}')
     error_logger.setLevel(logging.ERROR)
     error_handler = logging.FileHandler(error_log_file)
     error_handler.setLevel(logging.ERROR)
@@ -38,11 +43,12 @@ def setup_logging(base_folder, dataset, split_file):
     error_handler.setFormatter(error_formatter)
     error_logger.addHandler(error_handler)
 
-    return error_logger
+    return scrape_logger, error_logger
+
 
 
 async def scrape_submissions(base_folder, dataset, split_file, auth_file, batch_size=1000, reddit_batch_size=100):
-    error_logger = setup_logging(base_folder, dataset, split_file)
+    scrape_logger, error_logger = setup_logging(base_folder, dataset, split_file)
 
     with open(auth_file) as f:
         auth_data = json.load(f)
@@ -75,6 +81,8 @@ async def scrape_submissions(base_folder, dataset, split_file, auth_file, batch_
         os.rename(outfile, old_outfile)
 
     compressor = zstd.ZstdCompressor(level=3)
+
+    scrape_logger.info(f"Starting to scrape submissions for split file: {split_file}")
 
     with open(outfile, 'wb') as f:
         with compressor.stream_writer(f) as writer:
